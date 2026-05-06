@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>靈魂繪師</title>
-    <!-- 核心腳本：請確保 src 內只有純網址 -->
+    <title>靈魂繪師 - 地端免安裝版</title>
+    <!-- 核心腳本 -->
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gradient-to-br from-[#00C9A7] to-[#0089BA] min-h-screen text-[#475d5b]">
+<body class="bg-gradient-to-br from-[#00C9A7] to-[#0089BA] min-h-screen text-[#475d5b] font-sans">
     <div id="root"></div>
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
@@ -42,6 +42,7 @@
 
         function App() {
             const [questions, setQuestions] = useState([]);
+            const [remainingIds, setRemainingIds] = useState([]);
             const [view, setView] = useState('slot'); 
             const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
             const [passwordInput, setPasswordInput] = useState("");
@@ -50,21 +51,56 @@
             const reelRefs = [useRef(), useRef(), useRef(), useRef()];
 
             const [editingId, setEditingId] = useState(null);
-            const [formData, setFormData] = useState({
-                who: '',
-                where: '',
-                do1: '',
-                do2: ''
-            });
+            const [formData, setFormData] = useState({ who: '', where: '', do1: '', do2: '' });
 
             useEffect(() => {
                 const saved = localStorage.getItem('soul_artist_questions');
-                setQuestions(saved ? JSON.parse(saved) : INITIAL_DATA);
+                const data = saved ? JSON.parse(saved) : INITIAL_DATA;
+                setQuestions(data);
+                setRemainingIds(data.map(q => q.id));
             }, []);
 
             const saveQuestions = (data) => {
                 setQuestions(data);
+                setRemainingIds(data.map(q => q.id));
                 localStorage.setItem('soul_artist_questions', JSON.stringify(data));
+            };
+
+            const resetPool = () => {
+                setRemainingIds(questions.map(q => q.id));
+                setCurrentSentence("題庫已重置，準備好再次開始了嗎？");
+            };
+
+            const spin = () => {
+                if (isSpinning || remainingIds.length === 0) return;
+                
+                setIsSpinning(true);
+                setCurrentSentence("靈魂正在挑選題目...");
+
+                const randomIndex = Math.floor(Math.random() * remainingIds.length);
+                const targetId = remainingIds[randomIndex];
+                const targetFullIndex = questions.findIndex(q => q.id === targetId);
+                const height = window.innerWidth <= 640 ? 70 : 150;
+
+                reelRefs.forEach((ref, i) => {
+                    if (!ref.current) return;
+                    const offset = (questions.length * 2 + targetFullIndex) * height;
+                    ref.current.style.transition = `transform ${2 + i * 0.4}s cubic-bezier(0.1, 0, 0.1, 1)`;
+                    ref.current.style.transform = `translateY(-${offset}px)`;
+                });
+
+                setTimeout(() => {
+                    setIsSpinning(false);
+                    const q = questions[targetFullIndex];
+                    setCurrentSentence(`${q.who}在${q.where}一邊${q.do1}一邊${q.do2}`);
+                    setRemainingIds(prev => prev.filter(id => id !== targetId));
+
+                    reelRefs.forEach(ref => {
+                        if (!ref.current) return;
+                        ref.current.style.transition = 'none';
+                        ref.current.style.transform = `translateY(-${targetFullIndex * height}px)`;
+                    });
+                }, 2500);
             };
 
             const handleLogin = (e) => {
@@ -82,109 +118,48 @@
                 setIsAdminAuthenticated(false);
                 setView('slot');
                 setEditingId(null);
-                setFormData({ who: '', where: '', do1: '', do2: '' });
             };
 
             const handleFormSubmit = (e) => {
                 e.preventDefault();
-                if (!formData.who || !formData.where || !formData.do1 || !formData.do2) {
-                    alert("請填寫所有欄位！");
-                    return;
-                }
+                if (!formData.who || !formData.where || !formData.do1 || !formData.do2) return;
 
                 if (editingId) {
-                    const updatedQuestions = questions.map(q => 
-                        q.id === editingId ? { ...q, ...formData } : q
-                    );
-                    saveQuestions(updatedQuestions);
+                    const updated = questions.map(q => q.id === editingId ? { ...q, ...formData } : q);
+                    saveQuestions(updated);
                     setEditingId(null);
-                    alert("修改成功！");
                 } else {
-                    const newQuestion = {
-                        id: Date.now().toString(),
-                        ...formData
-                    };
-                    saveQuestions([...questions, newQuestion]);
-                    alert("新增成功！");
+                    saveQuestions([...questions, { id: Date.now().toString(), ...formData }]);
                 }
                 setFormData({ who: '', where: '', do1: '', do2: '' });
-            };
-
-            const handleEditStart = (q) => {
-                setEditingId(q.id);
-                setFormData({
-                    who: q.who,
-                    where: q.where,
-                    do1: q.do1,
-                    do2: q.do2
-                });
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            };
-
-            const handleCancelEdit = () => {
-                setEditingId(null);
-                setFormData({ who: '', where: '', do1: '', do2: '' });
-            };
-
-            const spin = () => {
-                if (isSpinning || questions.length === 0) return;
-                setIsSpinning(true);
-                setCurrentSentence("正在為您挑選靈魂題目...");
-                const target = Math.floor(Math.random() * questions.length);
-                const height = window.innerWidth <= 640 ? 70 : 150;
-
-                reelRefs.forEach((ref, i) => {
-                    if (!ref.current) return;
-                    const offset = (questions.length * 2 + target) * height;
-                    ref.current.style.transition = `transform ${2 + i * 0.4}s cubic-bezier(0.1, 0, 0.1, 1)`;
-                    ref.current.style.transform = `translateY(-${offset}px)`;
-                });
-
-                setTimeout(() => {
-                    setIsSpinning(false);
-                    const q = questions[target];
-                    // 修改連結詞為：一邊...一邊...
-                    setCurrentSentence(`${q.who}在${q.where}一邊${q.do1}一邊${q.do2}`);
-                    reelRefs.forEach(ref => {
-                        if (!ref.current) return;
-                        ref.current.style.transition = 'none';
-                        ref.current.style.transform = `translateY(-${target * height}px)`;
-                    });
-                }, 2500);
             };
 
             return (
                 <div className="min-h-screen p-4 md:p-8 flex flex-col items-center">
                     {/* 導覽列 */}
-                    <nav className="w-full max-w-4xl flex justify-between items-center mb-8 bg-[#fffffe]/90 backdrop-blur-sm p-4 rounded-3xl border-2 border-[#00ebc7] shadow-xl">
+                    <nav className="w-full max-w-4xl flex justify-between items-center mb-8 bg-white/90 backdrop-blur-md p-4 rounded-3xl border-2 border-[#00ebc7] shadow-xl">
                         <span className="text-2xl font-black text-[#00473e] tracking-tight">靈魂繪師</span>
                         <div className="flex gap-2">
-                            <button 
-                                onClick={() => setView('slot')} 
-                                className={`px-5 py-2 rounded-2xl transition-all duration-300 font-bold ${view === 'slot' ? 'bg-gradient-to-r from-[#00C9A7] to-[#0089BA] text-white shadow-lg' : 'text-[#475d5b] hover:bg-[#00C9A7]/10'}`}
-                            >
-                                抽題模式
-                            </button>
-                            <button 
-                                onClick={() => setView('admin')} 
-                                className={`px-5 py-2 rounded-2xl transition-all duration-300 font-bold ${view === 'admin' ? 'bg-gradient-to-r from-[#00C9A7] to-[#0089BA] text-white shadow-lg' : 'text-[#475d5b] hover:bg-[#00C9A7]/10'}`}
-                            >
-                                管理後台
-                            </button>
+                            <button onClick={() => setView('slot')} className={`px-5 py-2 rounded-2xl transition-all font-bold ${view === 'slot' ? 'bg-[#00473e] text-white shadow-lg' : 'text-[#475d5b] hover:bg-[#00C9A7]/10'}`}>抽題模式</button>
+                            <button onClick={() => setView('admin')} className={`px-5 py-2 rounded-2xl transition-all font-bold ${view === 'admin' ? 'bg-[#00473e] text-white shadow-lg' : 'text-[#475d5b] hover:bg-[#00C9A7]/10'}`}>管理後台</button>
                         </div>
                     </nav>
 
                     {view === 'slot' ? (
                         <div className="w-full max-w-4xl text-center">
-                            <div className="bg-[#fffffe] p-8 md:p-10 rounded-[3rem] border-4 border-[#00ebc7] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] relative">
-                                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-[#f2f7f5] p-5 rounded-3xl overflow-hidden border-2 border-[#00ebc7]/20 shadow-inner">
+                            <div className="bg-white p-6 md:p-10 rounded-[3rem] border-4 border-[#00ebc7] shadow-[0_20px_50px_-15px_rgba(0,0,0,0.3)] relative overflow-hidden">
+                                <div className="absolute top-6 right-10 text-[#00473e] text-xs font-black italic opacity-60 bg-[#00C9A7]/10 px-3 py-1 rounded-full border border-[#00ebc7]/20">
+                                    剩餘題目：{remainingIds.length} / {questions.length}
+                                </div>
+                                
+                                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-[#f2f7f5] p-5 rounded-3xl overflow-hidden border-2 border-[#00ebc7]/10 shadow-inner mt-6">
                                     {['主角', '地點', '動作一', '動作二'].map((label, idx) => (
-                                        <div key={idx} className="flex flex-col gap-3">
-                                            <div className="text-[#00473e] text-xs font-black uppercase tracking-[0.2em]">{label}</div>
-                                            <div className="h-[70px] md:h-[150px] bg-[#fffffe] rounded-2xl overflow-hidden relative border-2 border-[#00C9A7]/10 shadow-sm group">
+                                        <div key={idx} className="flex flex-col gap-2">
+                                            <div className="text-[#00473e] text-xs font-black uppercase tracking-widest">{label}</div>
+                                            <div className="h-[70px] md:h-[150px] bg-white rounded-2xl overflow-hidden relative border-2 border-[#00ebc7]/20 shadow-sm">
                                                 <div ref={reelRefs[idx]} className="absolute w-full flex flex-col">
                                                     {[...questions, ...questions, ...questions].map((q, i) => (
-                                                        <div key={i} className="h-[70px] md:h-[150px] flex items-center justify-center text-[#475d5b] font-bold text-lg border-b border-[#f2f7f5] px-3 leading-tight text-center">
+                                                        <div key={i} className="h-[70px] md:h-[150px] flex items-center justify-center text-[#475d5b] font-bold text-lg border-b border-[#f2f7f5] px-2 leading-tight text-center">
                                                             {q[['who', 'where', 'do1', 'do2'][idx]]}
                                                         </div>
                                                     ))}
@@ -193,129 +168,66 @@
                                         </div>
                                     ))}
                                 </div>
-                                
-                                <button 
-                                    onClick={spin} 
-                                    disabled={isSpinning} 
-                                    className="mt-10 px-16 py-5 bg-gradient-to-r from-[#00C9A7] via-[#0089BA] to-[#00C9A7] bg-[length:200%_auto] text-white rounded-full text-2xl font-black hover:bg-right transition-all duration-500 active:scale-95 shadow-[0_10px_20px_rgba(0,201,167,0.3)] disabled:grayscale"
-                                >
-                                    {isSpinning ? '靈魂挑選中...' : '開始抽選題目'}
-                                </button>
-                                
-                                <div className="mt-10 bg-white p-8 rounded-3xl text-xl md:text-3xl font-black text-[#00473e] min-h-[140px] flex items-center justify-center border-2 border-[#00ebc7]/30 shadow-inner leading-relaxed animate-pulse-slow">
-                                    {currentSentence}
+
+                                {remainingIds.length > 0 ? (
+                                    <button onClick={spin} disabled={isSpinning} className="mt-10 px-16 py-5 bg-gradient-to-r from-[#00C9A7] to-[#0089BA] text-white rounded-full text-2xl font-black hover:scale-105 transition-all active:scale-95 shadow-[0_10px_20px_rgba(0,201,167,0.3)] disabled:grayscale">
+                                        {isSpinning ? '抽取中...' : '開始抽選'}
+                                    </button>
+                                ) : (
+                                    <button onClick={resetPool} className="mt-10 px-16 py-5 bg-[#00473e] text-white rounded-full text-2xl font-black hover:scale-105 transition-all active:scale-95 shadow-lg">
+                                        重置題庫池
+                                    </button>
+                                )}
+
+                                <div className={`mt-10 bg-[#f2f7f5]/50 p-8 rounded-3xl text-xl md:text-3xl font-black min-h-[140px] flex items-center justify-center border-2 border-[#00ebc7]/10 shadow-inner leading-relaxed ${remainingIds.length === 0 && !isSpinning ? 'text-[#fa5246]' : 'text-[#00473e]'}`}>
+                                    {remainingIds.length === 0 && !isSpinning ? "Oh no！沒題目了" : currentSentence}
                                 </div>
                             </div>
                         </div>
                     ) : (
                         !isAdminAuthenticated ? (
-                            <div className="w-full max-w-md bg-[#fffffe] p-10 rounded-[2.5rem] border-2 border-[#00ebc7] shadow-2xl text-center animate-fade-in">
-                                <div className="mb-8">
-                                    <div className="w-20 h-20 bg-gradient-to-br from-[#00C9A7] to-[#0089BA] rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg rotate-3">
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                                        </svg>
-                                    </div>
-                                    <h2 className="text-3xl font-black text-[#00473e]">管理員驗證</h2>
-                                    <p className="text-[#475d5b] text-sm mt-3 font-bold opacity-70">進入地端題庫管理系統</p>
-                                </div>
-                                <form onSubmit={handleLogin} className="space-y-5">
-                                    <input 
-                                        type="password" 
-                                        autoFocus
-                                        value={passwordInput}
-                                        onChange={(e) => setPasswordInput(e.target.value)}
-                                        placeholder="請輸入管理密碼"
-                                        className="w-full bg-[#f2f7f5] border-2 border-[#00ebc7]/30 text-[#00473e] rounded-2xl p-5 text-center text-xl tracking-widest focus:border-[#00C9A7] focus:ring-4 focus:ring-[#00C9A7]/10 outline-none transition-all"
-                                    />
-                                    <button type="submit" className="w-full bg-gradient-to-r from-[#00C9A7] to-[#0089BA] text-white py-5 rounded-2xl font-black text-lg transition shadow-xl active:scale-95">
-                                        驗證權限
-                                    </button>
+                            <div className="w-full max-w-md bg-white p-10 rounded-[2.5rem] border-2 border-[#00ebc7] shadow-2xl text-center">
+                                <h2 className="text-3xl font-black text-[#00473e] mb-8">管理員驗證</h2>
+                                <form onSubmit={handleLogin} className="space-y-6">
+                                    <input type="password" autoFocus value={passwordInput} onChange={(e) => setPasswordInput(e.target.value)} placeholder="輸入密碼" className="w-full bg-[#f2f7f5] border-2 border-[#00ebc7]/30 text-[#00473e] rounded-2xl p-5 text-center text-2xl tracking-widest outline-none focus:border-[#00C9A7] transition" />
+                                    <button type="submit" className="w-full bg-gradient-to-r from-[#00C9A7] to-[#0089BA] text-white py-5 rounded-2xl font-black text-xl shadow-lg active:scale-95 transition">登入系統</button>
                                 </form>
                             </div>
                         ) : (
                             <div className="w-full max-w-4xl flex flex-col gap-6 animate-fade-in">
-                                <div className="flex justify-between items-center bg-[#fffffe] p-5 rounded-3xl border-2 border-[#00ebc7] shadow-lg">
-                                    <span className="text-[#00473e] text-lg font-black flex items-center gap-2">
-                                        <span className="w-3 h-3 bg-[#00ebc7] rounded-full animate-pulse"></span>
-                                        已進入管理模式
-                                    </span>
-                                    <button 
-                                        onClick={handleLogout}
-                                        className="bg-[#f2f7f5] text-[#fa5246] px-6 py-2 rounded-xl text-sm font-black hover:bg-[#fa5246]/10 transition border-2 border-[#fa5246]/20 shadow-sm"
-                                    >
-                                        登出並鎖定
-                                    </button>
+                                <div className="flex justify-between items-center bg-white p-5 rounded-3xl border-2 border-[#00ebc7] shadow-lg">
+                                    <span className="text-[#00473e] text-lg font-black italic">本地管理模式 ({questions.length} 筆)</span>
+                                    <button onClick={handleLogout} className="bg-[#f2f7f5] text-[#fa5246] px-6 py-2 rounded-xl text-sm font-black hover:bg-[#fa5246]/10 transition border border-[#fa5246]/20">登出</button>
                                 </div>
-
-                                {/* 編輯區 */}
-                                <div className={`bg-[#fffffe] p-8 rounded-3xl border-2 shadow-xl transition-all duration-500 ${editingId ? 'border-[#fa5246] ring-4 ring-[#fa5246]/5' : 'border-[#00ebc7]'}`}>
-                                    <h3 className="text-2xl font-black mb-6 text-[#00473e] flex items-center gap-2">
-                                        {editingId ? '🛠️ 修改題目' : '➕ 新增組合'}
-                                    </h3>
+                                <div className={`bg-white p-8 rounded-3xl border-2 shadow-xl transition-all ${editingId ? 'border-[#fa5246]' : 'border-[#00ebc7]'}`}>
+                                    <h3 className="text-2xl font-black mb-6 text-[#00473e]">{editingId ? '🛠️ 修改題目' : '➕ 新增題目'}</h3>
                                     <form onSubmit={handleFormSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                                        {[
-                                            { id: 'who', label: '主角 (誰)' },
-                                            { id: 'where', label: '地點 (在哪)' },
-                                            { id: 'do1', label: '動作一' },
-                                            { id: 'do2', label: '動作二' }
-                                        ].map(field => (
-                                            <div key={field.id}>
-                                                <label className="block text-xs text-[#00473e] mb-2 font-black uppercase tracking-widest opacity-60">{field.label}</label>
-                                                <input 
-                                                    type="text" 
-                                                    value={formData[field.id]}
-                                                    onChange={(e) => setFormData({...formData, [field.id]: e.target.value})}
-                                                    className="w-full bg-[#f2f7f5] border-2 border-[#00ebc7]/10 text-[#475d5b] rounded-xl p-4 focus:border-[#00C9A7] outline-none font-bold transition-all"
-                                                    placeholder="..."
-                                                />
+                                        {['who', 'where', 'do1', 'do2'].map((f, i) => (
+                                            <div key={f}>
+                                                <label className="block text-xs font-black text-[#00473e] mb-1 opacity-60 uppercase">{['主角', '地點', '動作一', '動作二'][i]}</label>
+                                                <input type="text" value={formData[f]} onChange={(e) => setFormData({...formData, [f]: e.target.value})} className="w-full bg-[#f2f7f5] border-2 border-[#00ebc7]/20 p-4 rounded-xl font-bold text-[#475d5b] outline-none focus:border-[#00C9A7]" placeholder="..." />
                                             </div>
                                         ))}
                                         <div className="md:col-span-2 flex gap-4 mt-2">
-                                            <button type="submit" className={`flex-1 py-5 rounded-2xl font-black text-lg transition shadow-xl ${editingId ? 'bg-[#fa5246] text-white' : 'bg-[#00473e] text-white hover:bg-[#005B44]'}`}>
-                                                {editingId ? '儲存變更' : '確認新增'}
-                                            </button>
-                                            {editingId && (
-                                                <button 
-                                                    type="button" 
-                                                    onClick={handleCancelEdit}
-                                                    className="px-8 py-5 bg-[#f2f7f5] text-[#475d5b] rounded-2xl font-black transition border-2 border-[#00473e]/10 hover:bg-white shadow-md"
-                                                >
-                                                    取消
-                                                </button>
-                                            )}
+                                            <button type="submit" className={`flex-1 py-5 rounded-2xl font-black text-lg shadow-xl text-white ${editingId ? 'bg-[#fa5246]' : 'bg-[#00473e]'}`}>{editingId ? '儲存變更' : '確認新增'}</button>
+                                            {editingId && <button onClick={() => {setEditingId(null); setFormData({who:'',where:'',do1:'',do2:''})}} className="px-8 bg-slate-200 rounded-2xl font-black">取消</button>}
                                         </div>
                                     </form>
                                 </div>
-
-                                {/* 題庫清單 */}
-                                <div className="bg-[#fffffe] p-8 rounded-3xl border-2 border-[#00ebc7] shadow-xl">
-                                    <div className="flex justify-between items-center mb-6 pb-4 border-b-2 border-[#f2f7f5]">
-                                        <h3 className="text-2xl font-black text-[#00473e]">本地題庫 <span className="text-[#00C9A7]">({questions.length})</span></h3>
-                                        <button onClick={() => {if(confirm('確定要恢復預設嗎？')) saveQuestions(INITIAL_DATA)}} className="text-[#fa5246] hover:underline text-sm font-black tracking-widest">重設題庫</button>
+                                <div className="bg-white p-8 rounded-3xl border-2 border-[#00ebc7] shadow-xl overflow-hidden">
+                                    <div className="flex justify-between items-center mb-6 border-b-2 border-[#f2f7f5] pb-4">
+                                        <h3 className="text-xl font-black text-[#00473e]">本地題庫清單</h3>
+                                        <button onClick={() => {if(confirm('重置後會遺失所有自訂題目，確定嗎？')) saveQuestions(INITIAL_DATA)}} className="text-[#fa5246] font-black underline text-sm">恢復預設題庫</button>
                                     </div>
-                                    <div className="space-y-4 text-left max-h-[500px] overflow-y-auto pr-3 custom-scrollbar">
+                                    <div className="space-y-3 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
                                         {questions.map(q => (
-                                            <div key={q.id} className={`p-5 bg-[#f2f7f5] border-2 rounded-2xl flex justify-between items-center group transition-all duration-300 ${editingId === q.id ? 'border-[#fa5246] bg-white scale-[1.02]' : 'border-transparent hover:border-[#00ebc7]/40 hover:shadow-md'}`}>
-                                                <span className="text-base text-[#475d5b] flex-1 pr-6 leading-relaxed font-bold">
-                                                    <span className="text-[#00C9A7] font-black">{q.who}</span> 在 
-                                                    <span className="text-[#0089BA] font-black"> {q.where} </span> 
-                                                    {/* 後臺顯示同樣修改為：一邊...一邊... */}
-                                                    一邊<span className="text-[#00473e]">{q.do1}</span>一邊<span className="text-[#00473e]">{q.do2}</span>
+                                            <div key={q.id} className="p-4 bg-[#f2f7f5] border-2 border-transparent rounded-2xl flex justify-between items-center hover:border-[#00ebc7]/30 transition">
+                                                <span className="text-base font-bold text-[#475d5b] leading-relaxed">
+                                                    <span className="text-[#00473e]">{q.who}</span> 在 <span className="text-[#00C9A7] font-black">{q.where}</span> 一邊{q.do1}一邊{q.do2}
                                                 </span>
-                                                <div className="flex gap-3 shrink-0">
-                                                    <button 
-                                                        onClick={() => handleEditStart(q)}
-                                                        className="bg-white text-[#00473e] hover:bg-[#00473e] hover:text-white px-4 py-2 rounded-xl transition font-black text-sm border-2 border-[#00473e]/20"
-                                                    >
-                                                        修改
-                                                    </button>
-                                                    <button 
-                                                        onClick={() => saveQuestions(questions.filter(item => item.id !== q.id))}
-                                                        className="bg-white text-[#fa5246] hover:bg-[#fa5246] hover:text-white px-4 py-2 rounded-xl transition font-black text-sm border-2 border-[#fa5246]/20"
-                                                    >
-                                                        刪除
-                                                    </button>
+                                                <div className="flex gap-3">
+                                                    <button onClick={() => {setEditingId(q.id); setFormData(q); window.scrollTo({top:0, behavior:'smooth'})}} className="bg-white text-[#00473e] px-4 py-2 rounded-xl text-xs font-black border border-[#00ebc7]/30 shadow-sm">改</button>
+                                                    <button onClick={() => {if(confirm('刪除後不可恢復，確定？')) saveQuestions(questions.filter(x => x.id !== q.id))}} className="bg-white text-[#fa5246] px-4 py-2 rounded-xl text-xs font-black border border-[#fa5246]/30 shadow-sm">刪</button>
                                                 </div>
                                             </div>
                                         ))}
@@ -333,26 +245,12 @@
     </script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap');
-        
-        body {
-            font-family: 'Noto Sans TC', sans-serif;
-        }
-
-        .custom-scrollbar::-webkit-scrollbar { width: 8px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: #f2f7f5; border-radius: 10px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #00ebc7; border-radius: 10px; border: 2px solid #f2f7f5; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #0089BA; }
-        
+        body { font-family: 'Noto Sans TC', sans-serif; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f2f7f5; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #00ebc7; border-radius: 10px; }
         @keyframes fade-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .animate-fade-in { animation: fade-in 0.5s ease-out; }
-        
-        @keyframes pulse-slow { 0%, 100% { opacity: 1; } 50% { opacity: 0.8; } }
-        .animate-pulse-slow { animation: pulse-slow 3s infinite ease-in-out; }
-        
-        /* 滾輪在手機版的優化 */
-        @media (max-width: 640px) {
-            .h-\[70px\] { height: 70px !important; }
-        }
     </style>
 </body>
 </html>
