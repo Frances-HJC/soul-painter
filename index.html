@@ -15,6 +15,8 @@
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
 
+        const ADMIN_PASSWORD = "1234"; // 你可以在這裡修改預設密碼
+
         const INITIAL_DATA = [
             { id: '1', who: "哥吉拉", where: "百貨公司", do1: "逛街", do2: "買花瓶" },
             { id: '2', who: "多拉A夢", where: "海邊", do1: "露營", do2: "吃螃蟹" },
@@ -40,12 +42,13 @@
 
         function App() {
             const [questions, setQuestions] = useState([]);
-            const [view, setView] = useState('slot');
+            const [view, setView] = useState('slot'); // 'slot', 'admin'
+            const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
+            const [passwordInput, setPasswordInput] = useState("");
             const [isSpinning, setIsSpinning] = useState(false);
             const [currentSentence, setCurrentSentence] = useState("點擊按鈕抽取題目");
             const reelRefs = [useRef(), useRef(), useRef(), useRef()];
 
-            // 用於新增題目的表單狀態
             const [formData, setFormData] = useState({
                 who: '',
                 where: '',
@@ -61,6 +64,22 @@
             const save = (data) => {
                 setQuestions(data);
                 localStorage.setItem('soul_artist_questions', JSON.stringify(data));
+            };
+
+            const handleLogin = (e) => {
+                e.preventDefault();
+                if (passwordInput === ADMIN_PASSWORD) {
+                    setIsAdminAuthenticated(true);
+                    setPasswordInput("");
+                } else {
+                    alert("密碼錯誤！");
+                    setPasswordInput("");
+                }
+            };
+
+            const handleLogout = () => {
+                setIsAdminAuthenticated(false);
+                setView('slot');
             };
 
             const handleAddQuestion = (e) => {
@@ -109,12 +128,23 @@
                     <nav className="w-full max-w-4xl flex justify-between items-center mb-8 bg-white/5 p-4 rounded-2xl border border-white/10 shadow-lg">
                         <span className="text-xl font-black">靈魂繪師 <span className="text-indigo-400">WEB</span></span>
                         <div className="flex gap-2">
-                            <button onClick={() => setView('slot')} className={`px-4 py-2 rounded-xl transition ${view === 'slot' ? 'bg-indigo-600' : 'hover:bg-white/10'}`}>抽題模式</button>
-                            <button onClick={() => setView('admin')} className={`px-4 py-2 rounded-xl transition ${view === 'admin' ? 'bg-indigo-600' : 'hover:bg-white/10'}`}>管理後台</button>
+                            <button 
+                                onClick={() => setView('slot')} 
+                                className={`px-4 py-2 rounded-xl transition ${view === 'slot' ? 'bg-indigo-600' : 'hover:bg-white/10'}`}
+                            >
+                                抽題模式
+                            </button>
+                            <button 
+                                onClick={() => setView('admin')} 
+                                className={`px-4 py-2 rounded-xl transition ${view === 'admin' ? 'bg-indigo-600' : 'hover:bg-white/10'}`}
+                            >
+                                管理後台
+                            </button>
                         </div>
                     </nav>
 
                     {view === 'slot' ? (
+                        /* 抽題介面 */
                         <div className="w-full max-w-4xl text-center">
                             <div className="bg-slate-800 p-6 rounded-[2.5rem] border-8 border-slate-700 shadow-2xl relative">
                                 <div className="grid grid-cols-1 md:grid-cols-4 gap-3 bg-slate-950 p-4 rounded-2xl overflow-hidden shadow-inner">
@@ -142,81 +172,121 @@
                             </div>
                         </div>
                     ) : (
-                        <div className="w-full max-w-4xl flex flex-col gap-6">
-                            {/* 新增題目表單 */}
-                            <div className="bg-slate-800 p-6 rounded-2xl border border-white/5 shadow-xl">
-                                <h3 className="text-xl font-bold mb-4 text-indigo-400">新增自訂題目</h3>
-                                <form onSubmit={handleAddQuestion} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-xs text-slate-400 mb-1">主角 (誰)</label>
-                                        <input 
-                                            type="text" 
-                                            value={formData.who}
-                                            onChange={(e) => setFormData({...formData, who: e.target.value})}
-                                            className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 focus:border-indigo-500 outline-none"
-                                            placeholder="例如：哥吉拉"
-                                        />
+                        /* 管理後台邏輯：判斷是否已驗證 */
+                        !isAdminAuthenticated ? (
+                            /* 密碼輸入介面 */
+                            <div className="w-full max-w-md bg-slate-800 p-8 rounded-3xl border border-white/10 shadow-2xl text-center">
+                                <div className="mb-6">
+                                    <div className="w-16 h-16 bg-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                        </svg>
                                     </div>
-                                    <div>
-                                        <label className="block text-xs text-slate-400 mb-1">地點 (在哪裡)</label>
-                                        <input 
-                                            type="text" 
-                                            value={formData.where}
-                                            onChange={(e) => setFormData({...formData, where: e.target.value})}
-                                            className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 focus:border-indigo-500 outline-none"
-                                            placeholder="例如：百貨公司"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs text-slate-400 mb-1">動作一</label>
-                                        <input 
-                                            type="text" 
-                                            value={formData.do1}
-                                            onChange={(e) => setFormData({...formData, do1: e.target.value})}
-                                            className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 focus:border-indigo-500 outline-none"
-                                            placeholder="例如：逛街"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs text-slate-400 mb-1">動作二</label>
-                                        <input 
-                                            type="text" 
-                                            value={formData.do2}
-                                            onChange={(e) => setFormData({...formData, do2: e.target.value})}
-                                            className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 focus:border-indigo-500 outline-none"
-                                            placeholder="例如：買花瓶"
-                                        />
-                                    </div>
-                                    <div className="md:col-span-2">
-                                        <button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-500 py-3 rounded-xl font-bold transition shadow-lg mt-2">
-                                            確認新增題目
-                                        </button>
-                                    </div>
+                                    <h2 className="text-2xl font-bold text-white">管理員驗證</h2>
+                                    <p className="text-slate-400 text-sm mt-2">請輸入後台管理密碼以繼續</p>
+                                </div>
+                                <form onSubmit={handleLogin} className="space-y-4">
+                                    <input 
+                                        type="password" 
+                                        autoFocus
+                                        value={passwordInput}
+                                        onChange={(e) => setPasswordInput(e.target.value)}
+                                        placeholder="輸入密碼"
+                                        className="w-full bg-slate-900 border border-slate-700 rounded-xl p-4 text-center text-xl tracking-widest focus:border-indigo-500 outline-none transition"
+                                    />
+                                    <button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-500 py-4 rounded-xl font-bold transition shadow-lg">
+                                        驗證並登入
+                                    </button>
                                 </form>
                             </div>
-
-                            {/* 題庫列表 */}
-                            <div className="bg-slate-800 p-6 rounded-2xl border border-white/5 shadow-xl">
-                                <div className="flex justify-between items-center mb-4">
-                                    <h3 className="text-xl font-bold text-indigo-400">目前題庫 ({questions.length})</h3>
-                                    <button onClick={() => {if(confirm('確定要恢復預設嗎？')) save(INITIAL_DATA)}} className="text-red-400 hover:text-red-300 transition underline text-sm font-bold">恢復預設題庫</button>
+                        ) : (
+                            /* 真正的管理介面 */
+                            <div className="w-full max-w-4xl flex flex-col gap-6 animate-in fade-in zoom-in duration-300">
+                                <div className="flex justify-between items-center bg-slate-800 p-4 rounded-2xl border border-white/5">
+                                    <span className="text-slate-400 text-sm">已登入為管理員</span>
+                                    <button 
+                                        onClick={handleLogout}
+                                        className="bg-red-500/10 text-red-400 px-4 py-1 rounded-lg text-sm font-bold hover:bg-red-500/20 transition"
+                                    >
+                                        登出並鎖定
+                                    </button>
                                 </div>
-                                <div className="text-sm text-slate-400 mb-6 italic">所有新增的題目將儲存在您的瀏覽器中。</div>
-                                <div className="space-y-2 mt-4 text-left max-h-[400px] overflow-y-auto pr-2">
-                                    {questions.map(q => (
-                                        <div key={q.id} className="p-4 bg-slate-900/50 border border-white/5 rounded-xl flex justify-between items-center group hover:bg-slate-900 transition">
-                                            <span className="text-sm text-slate-300">
-                                                <span className="font-bold text-indigo-400">{q.who}</span> 在 
-                                                <span className="font-bold text-indigo-400"> {q.where} </span> 
-                                                <span className="text-white">{q.do1}</span> 且 
-                                                <span className="text-white">{q.do2}</span>
+
+                                {/* 新增題目表單 */}
+                                <div className="bg-slate-800 p-6 rounded-2xl border border-white/5 shadow-xl">
+                                    <h3 className="text-xl font-bold mb-4 text-indigo-400">新增自訂題目</h3>
+                                    <form onSubmit={handleAddQuestion} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-xs text-slate-400 mb-1 font-bold">主角 (誰)</label>
+                                            <input 
+                                                type="text" 
+                                                value={formData.who}
+                                                onChange={(e) => setFormData({...formData, who: e.target.value})}
+                                                className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 focus:border-indigo-500 outline-none"
+                                                placeholder="例如：哥吉拉"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs text-slate-400 mb-1 font-bold">地點 (在哪裡)</label>
+                                            <input 
+                                                type="text" 
+                                                value={formData.where}
+                                                onChange={(e) => setFormData({...formData, where: e.target.value})}
+                                                className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 focus:border-indigo-500 outline-none"
+                                                placeholder="例如：百貨公司"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs text-slate-400 mb-1 font-bold">動作一</label>
+                                            <input 
+                                                type="text" 
+                                                value={formData.do1}
+                                                onChange={(e) => setFormData({...formData, do1: e.target.value})}
+                                                className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 focus:border-indigo-500 outline-none"
+                                                placeholder="例如：逛街"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs text-slate-400 mb-1 font-bold">動作二</label>
+                                            <input 
+                                                type="text" 
+                                                value={formData.do2}
+                                                onChange={(e) => setFormData({...formData, do2: e.target.value})}
+                                                className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 focus:border-indigo-500 outline-none"
+                                                placeholder="例如：買花瓶"
+                                            />
+                                        </div>
+                                        <div className="md:col-span-2">
+                                            <button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-500 py-3 rounded-xl font-bold transition shadow-lg mt-2">
+                                                確認新增題目
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+
+                                {/* 題庫列表 */}
+                                <div className="bg-slate-800 p-6 rounded-2xl border border-white/5 shadow-xl">
+                                    <div className="flex justify-between items-center mb-4">
+                                        <h3 className="text-xl font-bold text-indigo-400">目前題庫 ({questions.length})</h3>
+                                        <button onClick={() => {if(confirm('確定要恢復預設嗎？')) save(INITIAL_DATA)}} className="text-red-400 hover:text-red-300 transition underline text-sm font-bold">恢復預設題庫</button>
+                                    </div>
+                                    <div className="space-y-2 mt-4 text-left max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                                        {questions.map(q => (
+                                            <div key={q.id} className="p-4 bg-slate-900/50 border border-white/5 rounded-xl flex justify-between items-center group hover:bg-slate-900 transition">
+                                                <span className="text-sm text-slate-300">
+                                                    <span className="font-bold text-indigo-400">{q.who}</span> 在 
+                                                    <span className="font-bold text-indigo-400"> {q.where} </span> 
+                                                    <span className="text-white">{q.do1}</span> 且 
+                                                    <span className="text-white">{q.do2}</span>
                                             </span>
-                                            <button onClick={() => save(questions.filter(item => item.id !== q.id))} className="text-red-500 hover:bg-red-500/10 px-3 py-1 rounded-lg transition opacity-60 group-hover:opacity-100">刪除</button>
+                                            <button onClick={() => save(questions.filter(item => item.id !== q.id))} className="text-red-500 hover:bg-red-500/10 px-3 py-1 rounded-lg transition opacity-60 group-hover:opacity-100 font-bold">刪除</button>
                                         </div>
                                     ))}
+                                    {questions.length === 0 && <div className="text-center text-slate-500 py-8">目前題庫是空的。</div>}
                                 </div>
                             </div>
                         </div>
+                        )
                     )}
                 </div>
             );
@@ -225,5 +295,11 @@
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<App />);
     </script>
+    <style>
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+    </style>
 </body>
 </html>
