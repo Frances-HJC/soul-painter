@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>靈魂繪師 - 地端免安裝版</title>
-    <!-- 核心腳本 -->
+    <!-- 修正後的核心腳本連結 -->
     <script src="[https://unpkg.com/react@18/umd/react.production.min.js](https://unpkg.com/react@18/umd/react.production.min.js)"></script>
     <script src="[https://unpkg.com/react-dom@18/umd/react-dom.production.min.js](https://unpkg.com/react-dom@18/umd/react-dom.production.min.js)"></script>
     <script src="[https://unpkg.com/@babel/standalone/babel.min.js](https://unpkg.com/@babel/standalone/babel.min.js)"></script>
@@ -16,7 +16,6 @@
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
 
-        // 預設題庫
         const INITIAL_DATA = [
             { id: '1', who: "哥吉拉", where: "百貨公司", do1: "逛街", do2: "買花瓶" },
             { id: '2', who: "多拉A夢", where: "海邊", do1: "露營", do2: "吃螃蟹" },
@@ -114,8 +113,8 @@
                         <div className="w-full max-w-4xl bg-slate-800 p-6 rounded-2xl border border-white/5">
                            <h3 className="text-xl font-bold mb-4">目前題庫 ({questions.length})</h3>
                            <div className="text-sm text-slate-400 mb-4 italic">資料儲存在您的瀏覽器中。</div>
-                           <button onClick={() => {if(confirm('確定要恢復預設嗎？')) save(INITIAL_DATA)}} className="mb-4 text-red-400 hover:text-red-300 transition underline font-bold">恢復預設題庫</button>
-                           <div className="space-y-2 mt-4">
+                           <button onClick={() => {if(confirm('恢復預設？')) save(INITIAL_DATA)}} className="mb-4 text-red-400 hover:text-red-300 transition underline font-bold">恢復預設題庫</button>
+                           <div className="space-y-2 mt-4 text-left">
                                {questions.map(q => (
                                    <div key={q.id} className="p-3 bg-slate-900/50 border border-white/5 rounded-lg flex justify-between items-center">
                                        <span className="text-sm">{q.who} 在 {q.where} {q.do1} {q.do2}</span>
