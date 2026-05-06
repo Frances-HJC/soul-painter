@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>靈魂繪師 - 地端免安裝版</title>
+    <script src="[https://unpkg.com/react@18/umd/react.production.min.js](https://unpkg.com/react@18/umd/react.production.min.js)"></script>
+    <script src="[https://unpkg.com/react-dom@18/umd/react-dom.production.min.js](https://unpkg.com/react-dom@18/umd/react-dom.production.min.js)"></script>
+    <script src="[https://unpkg.com/@babel/standalone/babel.min.js](https://unpkg.com/@babel/standalone/babel.min.js)"></script>
+    <script src="[https://cdn.tailwindcss.com](https://cdn.tailwindcss.com)"></script>
+    <script src="[https://unpkg.com/lucide@latest](https://unpkg.com/lucide@latest)"></script>
+</head>
+<body class="bg-slate-900 text-slate-100">
+    <div id="root"></div>
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // 預設題庫
+        const INITIAL_DATA = [
+            { id: '1', who: "哥吉拉", where: "百貨公司", do1: "逛街", do2: "買花瓶" },
+            { id: '2', who: "多拉A夢", where: "海邊", do1: "露營", do2: "吃螃蟹" },
+            { id: '3', who: "唐老鴨", where: "烤鴨店", do1: "買一鴨三吃", do2: "跳街舞" },
+            { id: '4', who: "派大星", where: "瑜珈教室", do1: "跳 KPOP 舞", do2: "吃糖葫蘆" },
+            { id: '5', who: "三眼怪", where: "娃娃機店", do1: "吃串燒", do2: "夾娃娃" },
+            { id: '6', who: "大岩蛇", where: "池塘", do1: "捉泥鰍", do2: "吹泡泡" },
+            { id: '7', who: "皮卡丘", where: "公園", do1: "散步", do2: "玩皮球" },
+            { id: '8', who: "史努比", where: "屋頂", do1: "睡覺", do2: "曬太陽" },
+            { id: '9', who: "海綿寶寶", where: "廚房", do1: "煎魚", do2: "唱歌" },
+            { id: '10', who: "兩津勘吉", where: "派出所", do1: "打電動", do2: "被所長罵" }
+        ];
+
+        function App() {
+            const [questions, setQuestions] = useState([]);
+            const [view, setView] = useState('slot');
+            const [isSpinning, setIsSpinning] = useState(false);
+            const [currentSentence, setCurrentSentence] = useState("點擊按鈕抽取題目");
+            const reelRefs = [useRef(), useRef(), useRef(), useRef()];
+
+            useEffect(() => {
+                const saved = localStorage.getItem('soul_artist_questions');
+                setQuestions(saved ? JSON.parse(saved) : INITIAL_DATA);
+            }, []);
+
+            const save = (data) => {
+                setQuestions(data);
+                localStorage.setItem('soul_artist_questions', JSON.stringify(data));
+            };
+
+            const spin = () => {
+                if (isSpinning || questions.length === 0) return;
+                setIsSpinning(true);
+                setCurrentSentence("???");
+                const target = Math.floor(Math.random() * questions.length);
+                const height = window.innerWidth <= 640 ? 70 : 150;
+
+                reelRefs.forEach((ref, i) => {
+                    const offset = (questions.length * 2 + target) * height;
+                    ref.current.style.transition = `transform ${2 + i * 0.4}s cubic-bezier(0.1, 0, 0.1, 1)`;
+                    ref.current.style.transform = `translateY(-${offset}px)`;
+                });
+
+                setTimeout(() => {
+                    setIsSpinning(false);
+                    const q = questions[target];
+                    setCurrentSentence(`${q.who}在${q.where}${q.do1}，同時${q.do2}`);
+                    reelRefs.forEach(ref => {
+                        ref.current.style.transition = 'none';
+                        ref.current.style.transform = `translateY(-${target * height}px)`;
+                    });
+                }, 2500);
+            };
+
+            return (
+                <div className="min-h-screen p-4 md:p-8 flex flex-col items-center">
+                    <nav className="w-full max-w-4xl flex justify-between items-center mb-8 bg-white/5 p-4 rounded-2xl border border-white/10">
+                        <span className="text-xl font-black">靈魂繪師 <span className="text-indigo-400">WEB</span></span>
+                        <div className="flex gap-2">
+                            <button onClick={() => setView('slot')} className={`px-4 py-2 rounded-xl ${view === 'slot' ? 'bg-indigo-600' : 'hover:bg-white/10'}`}>抽題</button>
+                            <button onClick={() => setView('admin')} className={`px-4 py-2 rounded-xl ${view === 'admin' ? 'bg-indigo-600' : 'hover:bg-white/10'}`}>管理</button>
+                        </div>
+                    </nav>
+
+                    {view === 'slot' ? (
+                        <div className="w-full max-w-4xl text-center">
+                            <div className="bg-slate-800 p-6 rounded-[2.5rem] border-8 border-slate-700 shadow-2xl">
+                                <div className="grid grid-cols-1 md:grid-cols-4 gap-3 bg-slate-950 p-4 rounded-2xl overflow-hidden">
+                                    {['主角', '地點', '動作一', '動作二'].map((label, idx) => (
+                                        <div key={idx} className="flex flex-col gap-2">
+                                            <div className="text-indigo-400 text-xs font-bold uppercase">{label}</div>
+                                            <div className="h-[150px] md:h-[150px] h-[70px] bg-white rounded-xl overflow-hidden relative">
+                                                <div ref={reelRefs[idx]} className="absolute w-full flex flex-col">
+                                                    {[...questions, ...questions, ...questions].map((q, i) => (
+                                                        <div key={i} className="h-[150px] md:h-[150px] h-[70px] flex items-center justify-center text-slate-800 font-bold text-lg border-b border-slate-100">
+                                                            {q[['who', 'where', 'do1', 'do2'][idx]]}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                                <button onClick={spin} disabled={isSpinning} className="mt-8 px-12 py-4 bg-indigo-600 rounded-full text-xl font-bold hover:bg-indigo-500 transition active:scale-95">
+                                    {isSpinning ? '抽取中...' : '開始抽選'}
+                                </button>
+                                <div className="mt-8 bg-slate-900 p-6 rounded-2xl text-xl font-bold text-indigo-300 min-h-[100px] flex items-center justify-center">
+                                    {currentSentence}
+                                </div>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="w-full max-w-4xl bg-slate-800 p-6 rounded-2xl">
+                           <h3 className="text-xl font-bold mb-4">目前題庫 ({questions.length})</h3>
+                           <div className="text-sm text-slate-400 mb-4">資料儲存在您的瀏覽器中。</div>
+                           <button onClick={() => save(INITIAL_DATA)} className="mb-4 text-red-400 underline">恢復預設</button>
+                           <div className="space-y-2">
+                               {questions.map(q => (
+                                   <div key={q.id} className="p-3 bg-slate-900 rounded flex justify-between">
+                                       <span>{q.who} 在 {q.where} {q.do1} {q.do2}</span>
+                                       <button onClick={() => save(questions.filter(item => item.id !== q.id))} className="text-red-500">刪除</button>
+                                   </div>
+                               ))}
+                           </div>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
