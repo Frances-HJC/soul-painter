@@ -45,6 +45,14 @@
             const [currentSentence, setCurrentSentence] = useState("點擊按鈕抽取題目");
             const reelRefs = [useRef(), useRef(), useRef(), useRef()];
 
+            // 用於新增題目的表單狀態
+            const [formData, setFormData] = useState({
+                who: '',
+                where: '',
+                do1: '',
+                do2: ''
+            });
+
             useEffect(() => {
                 const saved = localStorage.getItem('soul_artist_questions');
                 setQuestions(saved ? JSON.parse(saved) : INITIAL_DATA);
@@ -53,6 +61,21 @@
             const save = (data) => {
                 setQuestions(data);
                 localStorage.setItem('soul_artist_questions', JSON.stringify(data));
+            };
+
+            const handleAddQuestion = (e) => {
+                e.preventDefault();
+                if (!formData.who || !formData.where || !formData.do1 || !formData.do2) {
+                    alert("請填寫所有欄位！");
+                    return;
+                }
+                const newQuestion = {
+                    id: Date.now().toString(),
+                    ...formData
+                };
+                save([...questions, newQuestion]);
+                setFormData({ who: '', where: '', do1: '', do2: '' });
+                alert("新增成功！");
             };
 
             const spin = () => {
@@ -101,7 +124,7 @@
                                             <div className="h-[70px] md:h-[150px] bg-white rounded-xl overflow-hidden relative shadow-inner">
                                                 <div ref={reelRefs[idx]} className="absolute w-full flex flex-col">
                                                     {[...questions, ...questions, ...questions].map((q, i) => (
-                                                        <div key={i} className="h-[70px] md:h-[150px] flex items-center justify-center text-slate-800 font-bold text-lg border-b border-slate-100 px-2 leading-tight">
+                                                        <div key={i} className="h-[70px] md:h-[150px] flex items-center justify-center text-slate-800 font-bold text-lg border-b border-slate-100 px-2 leading-tight text-center">
                                                             {q[['who', 'where', 'do1', 'do2'][idx]]}
                                                         </div>
                                                     ))}
@@ -119,18 +142,80 @@
                             </div>
                         </div>
                     ) : (
-                        <div className="w-full max-w-4xl bg-slate-800 p-6 rounded-2xl border border-white/5">
-                           <h3 className="text-xl font-bold mb-4 text-indigo-400">目前題庫 ({questions.length})</h3>
-                           <div className="text-sm text-slate-400 mb-6 italic">所有新增的題目將儲存在您的瀏覽器中，不會上傳雲端。</div>
-                           <button onClick={() => {if(confirm('確定要恢復預設嗎？')) save(INITIAL_DATA)}} className="mb-6 text-red-400 hover:text-red-300 transition underline font-bold">恢復預設題庫</button>
-                           <div className="space-y-2 mt-4 text-left">
-                               {questions.map(q => (
-                                   <div key={q.id} className="p-4 bg-slate-900/50 border border-white/5 rounded-xl flex justify-between items-center group hover:bg-slate-900 transition">
-                                       <span className="text-sm text-slate-300">{q.who} 在 {q.where} {q.do1} {q.do2}</span>
-                                       <button onClick={() => save(questions.filter(item => item.id !== q.id))} className="text-red-500 hover:bg-red-500/10 px-3 py-1 rounded-lg transition opacity-60 group-hover:opacity-100">刪除</button>
-                                   </div>
-                               ))}
-                           </div>
+                        <div className="w-full max-w-4xl flex flex-col gap-6">
+                            {/* 新增題目表單 */}
+                            <div className="bg-slate-800 p-6 rounded-2xl border border-white/5 shadow-xl">
+                                <h3 className="text-xl font-bold mb-4 text-indigo-400">新增自訂題目</h3>
+                                <form onSubmit={handleAddQuestion} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-xs text-slate-400 mb-1">主角 (誰)</label>
+                                        <input 
+                                            type="text" 
+                                            value={formData.who}
+                                            onChange={(e) => setFormData({...formData, who: e.target.value})}
+                                            className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 focus:border-indigo-500 outline-none"
+                                            placeholder="例如：哥吉拉"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs text-slate-400 mb-1">地點 (在哪裡)</label>
+                                        <input 
+                                            type="text" 
+                                            value={formData.where}
+                                            onChange={(e) => setFormData({...formData, where: e.target.value})}
+                                            className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 focus:border-indigo-500 outline-none"
+                                            placeholder="例如：百貨公司"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs text-slate-400 mb-1">動作一</label>
+                                        <input 
+                                            type="text" 
+                                            value={formData.do1}
+                                            onChange={(e) => setFormData({...formData, do1: e.target.value})}
+                                            className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 focus:border-indigo-500 outline-none"
+                                            placeholder="例如：逛街"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs text-slate-400 mb-1">動作二</label>
+                                        <input 
+                                            type="text" 
+                                            value={formData.do2}
+                                            onChange={(e) => setFormData({...formData, do2: e.target.value})}
+                                            className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 focus:border-indigo-500 outline-none"
+                                            placeholder="例如：買花瓶"
+                                        />
+                                    </div>
+                                    <div className="md:col-span-2">
+                                        <button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-500 py-3 rounded-xl font-bold transition shadow-lg mt-2">
+                                            確認新增題目
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+
+                            {/* 題庫列表 */}
+                            <div className="bg-slate-800 p-6 rounded-2xl border border-white/5 shadow-xl">
+                                <div className="flex justify-between items-center mb-4">
+                                    <h3 className="text-xl font-bold text-indigo-400">目前題庫 ({questions.length})</h3>
+                                    <button onClick={() => {if(confirm('確定要恢復預設嗎？')) save(INITIAL_DATA)}} className="text-red-400 hover:text-red-300 transition underline text-sm font-bold">恢復預設題庫</button>
+                                </div>
+                                <div className="text-sm text-slate-400 mb-6 italic">所有新增的題目將儲存在您的瀏覽器中。</div>
+                                <div className="space-y-2 mt-4 text-left max-h-[400px] overflow-y-auto pr-2">
+                                    {questions.map(q => (
+                                        <div key={q.id} className="p-4 bg-slate-900/50 border border-white/5 rounded-xl flex justify-between items-center group hover:bg-slate-900 transition">
+                                            <span className="text-sm text-slate-300">
+                                                <span className="font-bold text-indigo-400">{q.who}</span> 在 
+                                                <span className="font-bold text-indigo-400"> {q.where} </span> 
+                                                <span className="text-white">{q.do1}</span> 且 
+                                                <span className="text-white">{q.do2}</span>
+                                            </span>
+                                            <button onClick={() => save(questions.filter(item => item.id !== q.id))} className="text-red-500 hover:bg-red-500/10 px-3 py-1 rounded-lg transition opacity-60 group-hover:opacity-100">刪除</button>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
                         </div>
                     )}
                 </div>
