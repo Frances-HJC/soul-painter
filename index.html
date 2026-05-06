@@ -47,6 +47,7 @@
             const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
             const [passwordInput, setPasswordInput] = useState("");
             const [isSpinning, setIsSpinning] = useState(false);
+            const [hasSpun, setHasSpun] = useState(false); // 新增狀態：追蹤是否已經進行過第一次抽選
             const [currentSentence, setCurrentSentence] = useState("準備好開始了嗎？");
             const reelRefs = [useRef(), useRef(), useRef(), useRef()];
 
@@ -68,11 +69,15 @@
 
             const resetPool = () => {
                 setRemainingIds(questions.map(q => q.id));
+                setHasSpun(false); // 重置時隱藏卡片內容
                 setCurrentSentence("準備好再次開始了嗎？");
             };
 
             const spin = () => {
                 if (isSpinning || remainingIds.length === 0) return;
+                
+                // 第一次點擊時，將 hasSpun 設為 true 顯示卡片內容
+                if (!hasSpun) setHasSpun(true);
                 
                 setIsSpinning(true);
                 setCurrentSentence("正在挑選題目...");
@@ -162,7 +167,11 @@
                                         <div key={idx} className="flex flex-col gap-2">
                                             <div className="text-[#00473e] text-xs font-black uppercase tracking-widest">{label}</div>
                                             <div className="h-[70px] md:h-[150px] bg-white rounded-2xl overflow-hidden relative border-2 border-[#00ebc7]/20 shadow-sm">
-                                                <div ref={reelRefs[idx]} className="absolute w-full flex flex-col">
+                                                {/* 根據 hasSpun 狀態控制透明度，加入 transition 效果使顯現更自然 */}
+                                                <div 
+                                                    ref={reelRefs[idx]} 
+                                                    className={`absolute w-full flex flex-col transition-opacity duration-500 ${hasSpun ? 'opacity-100' : 'opacity-0'}`}
+                                                >
                                                     {[...questions, ...questions, ...questions].map((q, i) => (
                                                         <div key={i} className="h-[70px] md:h-[150px] flex items-center justify-center font-bold text-lg border-b border-[#f2f7f5] px-2 leading-tight text-center text-[#fa5246]">
                                                             {q[['who', 'where', 'do1', 'do2'][idx]]}
