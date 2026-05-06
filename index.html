@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>靈魂繪師 - 地端免安裝版</title>
+    <title>靈魂繪師</title>
     <!-- 核心腳本 -->
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -196,7 +196,7 @@
                         ) : (
                             <div className="w-full max-w-4xl flex flex-col gap-6 animate-fade-in">
                                 <div className="flex justify-between items-center bg-white p-5 rounded-3xl border-2 border-[#00ebc7] shadow-lg">
-                                    <span className="text-[#00473e] text-lg font-black italic">本地管理模式 ({questions.length} 筆)</span>
+                                    <span className="text-[#00473e] text-lg font-black italic">管理模式 ({questions.length} 筆)</span>
                                     <button onClick={handleLogout} className="bg-[#f2f7f5] text-[#fa5246] px-6 py-2 rounded-xl text-sm font-black hover:bg-[#fa5246]/10 transition border border-[#fa5246]/20">登出</button>
                                 </div>
                                 <div className={`bg-white p-8 rounded-3xl border-2 shadow-xl transition-all ${editingId ? 'border-[#fa5246]' : 'border-[#00ebc7]'}`}>
@@ -216,7 +216,7 @@
                                 </div>
                                 <div className="bg-white p-8 rounded-3xl border-2 border-[#00ebc7] shadow-xl overflow-hidden">
                                     <div className="flex justify-between items-center mb-6 border-b-2 border-[#f2f7f5] pb-4">
-                                        <h3 className="text-xl font-black text-[#00473e]">本地題庫清單</h3>
+                                        <h3 className="text-xl font-black text-[#00473e]">題庫池</h3>
                                         <button onClick={() => {if(confirm('重置後會遺失所有自訂題目，確定嗎？')) saveQuestions(INITIAL_DATA)}} className="text-[#fa5246] font-black underline text-sm">恢復預設題庫</button>
                                     </div>
                                     <div className="space-y-3 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
