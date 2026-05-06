@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>靈魂繪師 - 地端免安裝版</title>
+    <title>靈魂繪師</title>
     <!-- 核心腳本：請確保 src 內只有純網址 -->
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -143,7 +143,8 @@
                 setTimeout(() => {
                     setIsSpinning(false);
                     const q = questions[target];
-                    setCurrentSentence(`${q.who}在${q.where}${q.do1}，同時${q.do2}`);
+                    // 修改連結詞為：一邊...一邊...
+                    setCurrentSentence(`${q.who}在${q.where}一邊${q.do1}一邊${q.do2}`);
                     reelRefs.forEach(ref => {
                         if (!ref.current) return;
                         ref.current.style.transition = 'none';
@@ -154,7 +155,7 @@
 
             return (
                 <div className="min-h-screen p-4 md:p-8 flex flex-col items-center">
-                    {/* 導覽列：採用 ColorSpace 的 #00C9A7 作為邊框與標題色 */}
+                    {/* 導覽列 */}
                     <nav className="w-full max-w-4xl flex justify-between items-center mb-8 bg-[#fffffe]/90 backdrop-blur-sm p-4 rounded-3xl border-2 border-[#00ebc7] shadow-xl">
                         <span className="text-2xl font-black text-[#00473e] tracking-tight">靈魂繪師</span>
                         <div className="flex gap-2">
@@ -175,7 +176,6 @@
 
                     {view === 'slot' ? (
                         <div className="w-full max-w-4xl text-center">
-                            {/* 主卡片：清新白搭配薄荷綠邊框 */}
                             <div className="bg-[#fffffe] p-8 md:p-10 rounded-[3rem] border-4 border-[#00ebc7] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] relative">
                                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-[#f2f7f5] p-5 rounded-3xl overflow-hidden border-2 border-[#00ebc7]/20 shadow-inner">
                                     {['主角', '地點', '動作一', '動作二'].map((label, idx) => (
@@ -194,7 +194,6 @@
                                     ))}
                                 </div>
                                 
-                                {/* 旋轉按鈕：漸層處理 */}
                                 <button 
                                     onClick={spin} 
                                     disabled={isSpinning} 
@@ -301,7 +300,8 @@
                                                 <span className="text-base text-[#475d5b] flex-1 pr-6 leading-relaxed font-bold">
                                                     <span className="text-[#00C9A7] font-black">{q.who}</span> 在 
                                                     <span className="text-[#0089BA] font-black"> {q.where} </span> 
-                                                    <span className="text-[#00473e]">{q.do1}</span> 且 <span className="text-[#00473e]">{q.do2}</span>
+                                                    {/* 後臺顯示同樣修改為：一邊...一邊... */}
+                                                    一邊<span className="text-[#00473e]">{q.do1}</span>一邊<span className="text-[#00473e]">{q.do2}</span>
                                                 </span>
                                                 <div className="flex gap-3 shrink-0">
                                                     <button 
