@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>靈魂繪師 - 地端免安裝版</title>
-    <!-- 修正後的核心腳本連結 -->
+    <!-- 核心腳本 (已移除所有 Markdown 格式) -->
     <script src="[https://unpkg.com/react@18/umd/react.production.min.js](https://unpkg.com/react@18/umd/react.production.min.js)"></script>
     <script src="[https://unpkg.com/react-dom@18/umd/react-dom.production.min.js](https://unpkg.com/react-dom@18/umd/react-dom.production.min.js)"></script>
     <script src="[https://unpkg.com/@babel/standalone/babel.min.js](https://unpkg.com/@babel/standalone/babel.min.js)"></script>
@@ -77,8 +77,8 @@
                     <nav className="w-full max-w-4xl flex justify-between items-center mb-8 bg-white/5 p-4 rounded-2xl border border-white/10">
                         <span className="text-xl font-black">靈魂繪師 <span className="text-indigo-400">WEB</span></span>
                         <div className="flex gap-2">
-                            <button onClick={() => setView('slot')} className={`px-4 py-2 rounded-xl transition ${view === 'slot' ? 'bg-indigo-600' : 'hover:bg-white/10'}`}>抽題</button>
-                            <button onClick={() => setView('admin')} className={`px-4 py-2 rounded-xl transition ${view === 'admin' ? 'bg-indigo-600' : 'hover:bg-white/10'}`}>管理</button>
+                            <button onClick={() => setView('slot')} className={`px-4 py-2 rounded-xl transition ${view === 'slot' ? 'bg-indigo-600' : 'hover:bg-white/10'}`}>抽題模式</button>
+                            <button onClick={() => setView('admin')} className={`px-4 py-2 rounded-xl transition ${view === 'admin' ? 'bg-indigo-600' : 'hover:bg-white/10'}`}>管理後台</button>
                         </div>
                     </nav>
 
@@ -113,7 +113,7 @@
                         <div className="w-full max-w-4xl bg-slate-800 p-6 rounded-2xl border border-white/5">
                            <h3 className="text-xl font-bold mb-4">目前題庫 ({questions.length})</h3>
                            <div className="text-sm text-slate-400 mb-4 italic">資料儲存在您的瀏覽器中。</div>
-                           <button onClick={() => {if(confirm('恢復預設？')) save(INITIAL_DATA)}} className="mb-4 text-red-400 hover:text-red-300 transition underline font-bold">恢復預設題庫</button>
+                           <button onClick={() => {if(confirm('確定恢復預設？')) save(INITIAL_DATA)}} className="mb-4 text-red-400 hover:text-red-300 transition underline font-bold">恢復預設題庫</button>
                            <div className="space-y-2 mt-4 text-left">
                                {questions.map(q => (
                                    <div key={q.id} className="p-3 bg-slate-900/50 border border-white/5 rounded-lg flex justify-between items-center">
