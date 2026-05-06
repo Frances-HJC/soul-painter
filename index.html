@@ -4,12 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>靈魂繪師 - 地端免安裝版</title>
-    <!-- 核心腳本 (已移除所有 Markdown 格式) -->
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js](https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js](https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js](https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://cdn.tailwindcss.com](https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest](https://unpkg.com/lucide@latest"></script>
+    <!-- 核心腳本：請確保 src 內只有純網址 -->
+    <script src="[https://unpkg.com/react@18/umd/react.production.min.js](https://unpkg.com/react@18/umd/react.production.min.js)"></script>
+    <script src="[https://unpkg.com/react-dom@18/umd/react-dom.production.min.js](https://unpkg.com/react-dom@18/umd/react-dom.production.min.js)"></script>
+    <script src="[https://unpkg.com/@babel/standalone/babel.min.js](https://unpkg.com/@babel/standalone/babel.min.js)"></script>
+    <script src="[https://cdn.tailwindcss.com](https://cdn.tailwindcss.com)"></script>
 </head>
 <body class="bg-slate-900 text-slate-100">
     <div id="root"></div>
@@ -74,7 +73,7 @@
 
             return (
                 <div className="min-h-screen p-4 md:p-8 flex flex-col items-center">
-                    <nav className="w-full max-w-4xl flex justify-between items-center mb-8 bg-white/5 p-4 rounded-2xl border border-white/10">
+                    <nav className="w-full max-w-4xl flex justify-between items-center mb-8 bg-white/5 p-4 rounded-2xl border border-white/10 shadow-lg">
                         <span className="text-xl font-black">靈魂繪師 <span className="text-indigo-400">WEB</span></span>
                         <div className="flex gap-2">
                             <button onClick={() => setView('slot')} className={`px-4 py-2 rounded-xl transition ${view === 'slot' ? 'bg-indigo-600' : 'hover:bg-white/10'}`}>抽題模式</button>
@@ -84,15 +83,15 @@
 
                     {view === 'slot' ? (
                         <div className="w-full max-w-4xl text-center">
-                            <div className="bg-slate-800 p-6 rounded-[2.5rem] border-8 border-slate-700 shadow-2xl">
+                            <div className="bg-slate-800 p-6 rounded-[2.5rem] border-8 border-slate-700 shadow-2xl relative">
                                 <div className="grid grid-cols-1 md:grid-cols-4 gap-3 bg-slate-950 p-4 rounded-2xl overflow-hidden shadow-inner">
                                     {['主角', '地點', '動作一', '動作二'].map((label, idx) => (
                                         <div key={idx} className="flex flex-col gap-2">
                                             <div className="text-indigo-400 text-xs font-bold uppercase tracking-widest">{label}</div>
-                                            <div className="h-[150px] bg-white rounded-xl overflow-hidden relative shadow-inner">
+                                            <div className="h-[70px] md:h-[150px] bg-white rounded-xl overflow-hidden relative shadow-inner">
                                                 <div ref={reelRefs[idx]} className="absolute w-full flex flex-col">
                                                     {[...questions, ...questions, ...questions].map((q, i) => (
-                                                        <div key={i} className="h-[150px] flex items-center justify-center text-slate-800 font-bold text-lg border-b border-slate-100">
+                                                        <div key={i} className="h-[70px] md:h-[150px] flex items-center justify-center text-slate-800 font-bold text-lg border-b border-slate-100 px-2 leading-tight">
                                                             {q[['who', 'where', 'do1', 'do2'][idx]]}
                                                         </div>
                                                     ))}
@@ -104,21 +103,21 @@
                                 <button onClick={spin} disabled={isSpinning} className="mt-8 px-12 py-4 bg-indigo-600 rounded-full text-xl font-bold hover:bg-indigo-500 transition active:scale-95 shadow-lg">
                                     {isSpinning ? '抽取中...' : '開始抽選'}
                                 </button>
-                                <div className="mt-8 bg-slate-900 p-6 rounded-2xl text-xl font-bold text-indigo-300 min-h-[120px] flex items-center justify-center shadow-inner border border-white/5">
+                                <div className="mt-8 bg-slate-900 p-6 rounded-2xl text-xl md:text-2xl font-bold text-indigo-300 min-h-[120px] flex items-center justify-center shadow-inner border border-white/5 leading-relaxed">
                                     {currentSentence}
                                 </div>
                             </div>
                         </div>
                     ) : (
                         <div className="w-full max-w-4xl bg-slate-800 p-6 rounded-2xl border border-white/5">
-                           <h3 className="text-xl font-bold mb-4">目前題庫 ({questions.length})</h3>
-                           <div className="text-sm text-slate-400 mb-4 italic">資料儲存在您的瀏覽器中。</div>
-                           <button onClick={() => {if(confirm('確定恢復預設？')) save(INITIAL_DATA)}} className="mb-4 text-red-400 hover:text-red-300 transition underline font-bold">恢復預設題庫</button>
+                           <h3 className="text-xl font-bold mb-4 text-indigo-400">目前題庫 ({questions.length})</h3>
+                           <div className="text-sm text-slate-400 mb-6 italic">所有新增的題目將儲存在您的瀏覽器中，不會上傳雲端。</div>
+                           <button onClick={() => {if(confirm('確定要恢復預設嗎？')) save(INITIAL_DATA)}} className="mb-6 text-red-400 hover:text-red-300 transition underline font-bold">恢復預設題庫</button>
                            <div className="space-y-2 mt-4 text-left">
                                {questions.map(q => (
-                                   <div key={q.id} className="p-3 bg-slate-900/50 border border-white/5 rounded-lg flex justify-between items-center">
-                                       <span className="text-sm">{q.who} 在 {q.where} {q.do1} {q.do2}</span>
-                                       <button onClick={() => save(questions.filter(item => item.id !== q.id))} className="text-red-500 hover:bg-red-500/10 p-2 rounded transition">刪除</button>
+                                   <div key={q.id} className="p-4 bg-slate-900/50 border border-white/5 rounded-xl flex justify-between items-center group hover:bg-slate-900 transition">
+                                       <span className="text-sm text-slate-300">{q.who} 在 {q.where} {q.do1} {q.do2}</span>
+                                       <button onClick={() => save(questions.filter(item => item.id !== q.id))} className="text-red-500 hover:bg-red-500/10 px-3 py-1 rounded-lg transition opacity-60 group-hover:opacity-100">刪除</button>
                                    </div>
                                ))}
                            </div>
@@ -128,8 +127,8 @@
             );
         }
 
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
+            const root = ReactDOM.createRoot(document.getElementById('root'));
+            root.render(<App />);
     </script>
 </body>
 </html>
