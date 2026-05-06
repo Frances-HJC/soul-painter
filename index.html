@@ -68,14 +68,14 @@
 
             const resetPool = () => {
                 setRemainingIds(questions.map(q => q.id));
-                setCurrentSentence("題庫已重置，準備好再次開始了嗎？");
+                setCurrentSentence("準備好再次開始了嗎？");
             };
 
             const spin = () => {
                 if (isSpinning || remainingIds.length === 0) return;
                 
                 setIsSpinning(true);
-                setCurrentSentence("靈魂正在挑選題目...");
+                setCurrentSentence("正在挑選題目...");
 
                 const randomIndex = Math.floor(Math.random() * remainingIds.length);
                 const targetId = remainingIds[randomIndex];
@@ -134,6 +134,11 @@
                 setFormData({ who: '', where: '', do1: '', do2: '' });
             };
 
+            // 判斷結果文字顏色
+            const isDefault = currentSentence === "準備好開始了嗎？" || currentSentence === "準備好再次開始了嗎？" || currentSentence === "正在挑選題目...";
+            const isEmpty = remainingIds.length === 0 && !isSpinning && currentSentence !== "準備好開始了嗎？" && currentSentence !== "準備好再次開始了嗎？";
+            const resultTextHighlightClass = (isEmpty || (!isSpinning && !isDefault)) ? 'text-[#fa5246]' : 'text-[#00473e]';
+
             return (
                 <div className="min-h-screen p-4 md:p-8 flex flex-col items-center">
                     {/* 導覽列 */}
@@ -159,7 +164,7 @@
                                             <div className="h-[70px] md:h-[150px] bg-white rounded-2xl overflow-hidden relative border-2 border-[#00ebc7]/20 shadow-sm">
                                                 <div ref={reelRefs[idx]} className="absolute w-full flex flex-col">
                                                     {[...questions, ...questions, ...questions].map((q, i) => (
-                                                        <div key={i} className="h-[70px] md:h-[150px] flex items-center justify-center text-[#475d5b] font-bold text-lg border-b border-[#f2f7f5] px-2 leading-tight text-center">
+                                                        <div key={i} className="h-[70px] md:h-[150px] flex items-center justify-center font-bold text-lg border-b border-[#f2f7f5] px-2 leading-tight text-center text-[#fa5246]">
                                                             {q[['who', 'where', 'do1', 'do2'][idx]]}
                                                         </div>
                                                     ))}
@@ -179,14 +184,21 @@
                                     </button>
                                 )}
 
-                                <div className={`mt-10 bg-[#f2f7f5]/50 p-8 rounded-3xl text-xl md:text-3xl font-black min-h-[140px] flex items-center justify-center border-2 border-[#00ebc7]/10 shadow-inner leading-relaxed ${remainingIds.length === 0 && !isSpinning ? 'text-[#fa5246]' : 'text-[#00473e]'}`}>
-                                    {remainingIds.length === 0 && !isSpinning ? "Oh no！沒題目了" : currentSentence}
+                                <div className={`mt-10 bg-[#f2f7f5]/50 p-8 rounded-3xl text-xl md:text-3xl font-black min-h-[140px] flex items-center justify-center border-2 border-[#00ebc7]/10 shadow-inner leading-relaxed transition-colors duration-300 ${resultTextHighlightClass}`}>
+                                    {remainingIds.length === 0 && !isSpinning && !isDefault ? "Oh no！沒題目了" : currentSentence}
                                 </div>
                             </div>
                         </div>
                     ) : (
                         !isAdminAuthenticated ? (
                             <div className="w-full max-w-md bg-white p-10 rounded-[2.5rem] border-2 border-[#00ebc7] shadow-2xl text-center">
+                                <div className="w-20 h-20 bg-[#f2f7f5] rounded-full flex items-center justify-center mx-auto mb-6 border-2 border-[#00ebc7]/30 shadow-inner">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#00473e" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                                    </svg>
+                                </div>
+                                
                                 <h2 className="text-3xl font-black text-[#00473e] mb-8">管理員驗證</h2>
                                 <form onSubmit={handleLogin} className="space-y-6">
                                     <input type="password" autoFocus value={passwordInput} onChange={(e) => setPasswordInput(e.target.value)} placeholder="輸入密碼" className="w-full bg-[#f2f7f5] border-2 border-[#00ebc7]/30 text-[#00473e] rounded-2xl p-5 text-center text-2xl tracking-widest outline-none focus:border-[#00C9A7] transition" />
@@ -197,7 +209,7 @@
                             <div className="w-full max-w-4xl flex flex-col gap-6 animate-fade-in">
                                 <div className="flex justify-between items-center bg-white p-5 rounded-3xl border-2 border-[#00ebc7] shadow-lg">
                                     <span className="text-[#00473e] text-lg font-black italic">管理模式 ({questions.length} 筆)</span>
-                                    <button onClick={handleLogout} className="bg-[#f2f7f5] text-[#fa5246] px-6 py-2 rounded-xl text-sm font-black hover:bg-[#fa5246]/10 transition border border-[#fa5246]/20">登出</button>
+                                    <button onClick={handleLogout} className="bg-[#f2f7f5] text-[#fa5246] px-6 py-2 rounded-xl text-sm font-black hover:bg-[#fa5246]/10 transition border border-[#fa5246]/20 shadow-sm">登出</button>
                                 </div>
                                 <div className={`bg-white p-8 rounded-3xl border-2 shadow-xl transition-all ${editingId ? 'border-[#fa5246]' : 'border-[#00ebc7]'}`}>
                                     <h3 className="text-2xl font-black mb-6 text-[#00473e]">{editingId ? '🛠️ 修改題目' : '➕ 新增題目'}</h3>
@@ -222,12 +234,12 @@
                                     <div className="space-y-3 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
                                         {questions.map(q => (
                                             <div key={q.id} className="p-4 bg-[#f2f7f5] border-2 border-transparent rounded-2xl flex justify-between items-center hover:border-[#00ebc7]/30 transition">
-                                                <span className="text-base font-bold text-[#475d5b] leading-relaxed">
-                                                    <span className="text-[#00473e]">{q.who}</span> 在 <span className="text-[#00C9A7] font-black">{q.where}</span> 一邊{q.do1}一邊{q.do2}
+                                                <span className="text-base font-bold text-[#00473e] leading-relaxed">
+                                                    {q.who} 在 {q.where} 一邊{q.do1}一邊{q.do2}
                                                 </span>
                                                 <div className="flex gap-3">
-                                                    <button onClick={() => {setEditingId(q.id); setFormData(q); window.scrollTo({top:0, behavior:'smooth'})}} className="bg-white text-[#00473e] px-4 py-2 rounded-xl text-xs font-black border border-[#00ebc7]/30 shadow-sm">改</button>
-                                                    <button onClick={() => {if(confirm('刪除後不可恢復，確定？')) saveQuestions(questions.filter(x => x.id !== q.id))}} className="bg-white text-[#fa5246] px-4 py-2 rounded-xl text-xs font-black border border-[#fa5246]/30 shadow-sm">刪</button>
+                                                    <button onClick={() => {setEditingId(q.id); setFormData(q); window.scrollTo({top:0, behavior:'smooth'})}} className="bg-white text-[#00473e] px-4 py-2 rounded-xl text-xs font-black border border-[#00ebc7]/30 shadow-sm">修改</button>
+                                                    <button onClick={() => {if(confirm('刪除後不可恢復，確定？')) saveQuestions(questions.filter(x => x.id !== q.id))}} className="bg-white text-[#fa5246] px-4 py-2 rounded-xl text-xs font-black border border-[#fa5246]/30 shadow-sm">刪除</button>
                                                 </div>
                                             </div>
                                         ))}
